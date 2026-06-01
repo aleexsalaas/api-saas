@@ -8,7 +8,7 @@ use App\Models\User;
 class UserController extends Controller
 {
     public function index(){
-        $usuarios = user::all();
+        $usuarios = User::all();
         return $usuarios;
     }
 }
