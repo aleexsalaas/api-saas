@@ -16,4 +16,8 @@ class Room extends Model
         'price_per_hour',
         'is_active'
     ];
+
+    public function bookings(){
+        return $this->hasMany(Booking::class);
+    }
 }
