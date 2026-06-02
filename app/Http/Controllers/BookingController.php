@@ -54,8 +54,26 @@ class BookingController extends Controller
         try{
         $booking = Booking::with('user','room')->findOrFail($id);
         return response()->json($booking, 200);
-    }catch(\Exception $e){
-        return response()->json(['status'=>'error'], 500);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['message' => 'Booking not found'], 404);
+
+    } catch(\Exception $e){
+        return response()->json(['status'=>'error','message'=>'Internal Server Error'], 500);
     }
+    }
+
+    public function destroy($id){
+        try{
+            $delete = Booking::findOrFail($id);
+            $delete->delete();
+            return response()->json(['status'=>'ok','message'=>'Booking cancelled'], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'Booking not found'], 404);
+    
+        } catch (\Exception $e) {
+            return response()->json(['status'=>'error','message'=>'Internal Server Error'], 500);
+        }
     }
 }
