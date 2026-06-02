@@ -14,3 +14,4 @@ Route::post('/room', [RoomController::class, 'store']);
 
 Route::get('/bookings', [BookingController::class, 'index']);
 Route::post('/booking', [BookingController::class, 'store']);
+Route::get('/booking/{id}', [BookingController::class, 'show']);

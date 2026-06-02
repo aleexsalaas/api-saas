@@ -49,4 +49,13 @@ class BookingController extends Controller
             return response()->json(['status'=>'error'], 500);
         }
     }
+
+    public function show($id){
+        try{
+        $booking = Booking::with('user','room')->findOrFail($id);
+        return response()->json($booking, 200);
+    }catch(\Exception $e){
+        return response()->json(['status'=>'error'], 500);
+    }
+    }
 }
