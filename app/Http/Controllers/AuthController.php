@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -22,7 +23,7 @@ class AuthController extends Controller
             return response()->json(['status'=>'error'], 401);  
         }
 
-        $token = $usuario->createToken('token_largo_para_que_cumpla_los_32_digitos')->plainTextToken;
+        $token = $usuario->createToken('Postman')->plainTextToken;
 
         return response()->json(['status'=>'ok','token'=> $token], 200);
 
