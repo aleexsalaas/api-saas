@@ -6,13 +6,15 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\Room;
 use Carbon\Carbon;
+use App\Modles\User;
+
 
 class BookingController extends Controller
 {
 
     public function index(){
-        $bookings = Booking::all();
-        return $bookings;
+        $bookings = Booking::with('user','room')->get();
+        return response()->json($bookings, 200);
     }
     public function store(Request $request){
         try{
