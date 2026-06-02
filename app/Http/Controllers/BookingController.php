@@ -6,24 +6,31 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\Room;
 use Carbon\Carbon;
-use App\Modles\User;
+use App\Models\User;
 
 
 class BookingController extends Controller
 {
 
     public function index(){
-        $bookings = Booking::with('user','room')->get();
+        $bookings = Booking::with('user','room')->where('user_id', auth()->id())->get();
         return response()->json($bookings, 200);
     }
     public function store(Request $request){
         try{
             $booking_validation = $request->validate([
-                'user_id'=>'required|exists:users,id',
                 'room_id'=>'required|exists:rooms,id',
                 'started_at'=>'required|date_format:Y-m-d H:00:00|after_or_equal:now',
                 'ended_at'=>'required|date_format:Y-m-d H:00:00|after:started_at',
             ]);
+
+            $is_booked = Booking::where('room_id', $request->room_id)
+            ->where('started_at', '<', $request->ended_at)
+            ->where('ended_at','>',$request->started_at)->exists();
+
+            if($is_booked){
+                return response()->json(['status'=>'error','message'=>'The room is already booked'], 422);
+            }
 
             $room = Room::find($request->room_id);
 
@@ -36,8 +43,10 @@ class BookingController extends Controller
 
             $total_price = $hours * $room->price_per_hour;
 
+            $booking_validation['user_id'] = auth()->id();
             $booking_validation['total_price'] = $total_price;
             $booking_validation['status'] = 'confirmed';
+            
 
             $booking = Booking::create($booking_validation);
 
@@ -52,6 +61,13 @@ class BookingController extends Controller
 
     public function show($id){
         try{
+
+            $booking = Booking::with('user','room')->findOrFail($id);
+
+            if ($booking->user_id !== auth()->id()) {
+                return response()->json(['message' => 'Unauthorized. Not your booking.'], 403);
+            }
+
         $booking = Booking::with('user','room')->findOrFail($id);
         return response()->json($booking, 200);
 
@@ -65,6 +81,13 @@ class BookingController extends Controller
 
     public function destroy($id){
         try{
+
+            $booking = Booking::with('user','room')->findOrFail($id);
+
+            if ($booking->user_id !== auth()->id()) {
+                return response()->json(['message' => 'Unauthorized. Not your booking.'], 403);
+            }
+
             $delete = Booking::findOrFail($id);
             $delete->delete();
             return response()->json(['status'=>'ok','message'=>'Booking cancelled'], 200);
