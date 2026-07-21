@@ -8,6 +8,7 @@ use App\Models\Room;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Http\Resources\BookingResource;
+use App\Http\Requests\StoreBookingRequest;
 
 
 class BookingController extends Controller
@@ -17,39 +18,35 @@ class BookingController extends Controller
         $bookings = Booking::with('user','room')->where('user_id', auth()->id())->get();
         return response()->json( BookingResource::Collection($bookings), 200);
     }
-    public function store(Request $request){
+    public function store(StoreBookingRequest $request){
         try{
-            $booking_validation = $request->validate([
-                'room_id'=>'required|exists:rooms,id',
-                'started_at'=>'required|date_format:Y-m-d H:00:00|after_or_equal:now',
-                'ended_at'=>'required|date_format:Y-m-d H:00:00|after:started_at',
-            ]);
+            $booking_data = $request->validated();
 
-            $is_booked = Booking::where('room_id', $request->room_id)
-            ->where('started_at', '<', $request->ended_at)
-            ->where('ended_at','>',$request->started_at)->exists();
+            $is_booked = Booking::where('room_id', $booking_data['room_id'])
+            ->where('started_at', '<', $booking_data['ended_at'])
+            ->where('ended_at','>',$booking_data['started_at'])->exists();
 
             if($is_booked){
                 return response()->json(['status'=>'error','message'=>'The room is already booked'], 422);
             }
 
-            $room = Room::find($request->room_id);
+            $room = Room::find($booking_data['room_id']);
 
             $price = $room->price_per_hour;
 
-            $start_date = Carbon::parse($request->started_at);
-            $finish_date = Carbon::parse($request->ended_at);
+            $start_date = Carbon::parse($booking_data['started_at']);
+            $finish_date = Carbon::parse($booking_data['ended_at']);
 
             $hours = $start_date->diffInHours($finish_date);
 
             $total_price = $hours * $room->price_per_hour;
 
-            $booking_validation['user_id'] = auth()->id();
-            $booking_validation['total_price'] = $total_price;
-            $booking_validation['status'] = 'confirmed';
+            $booking_data['user_id'] = auth()->id();
+            $booking_data['total_price'] = $total_price;
+            $booking_data['status'] = 'confirmed';
             
 
-            $booking = Booking::create($booking_validation);
+            $booking = Booking::create($booking_data);
 
             return response()->json(new BookingResource($booking), 201);
 
