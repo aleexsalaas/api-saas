@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Room;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Http\Resources\BookingResource;
 
 
 class BookingController extends Controller
@@ -14,7 +15,7 @@ class BookingController extends Controller
 
     public function index(){
         $bookings = Booking::with('user','room')->where('user_id', auth()->id())->get();
-        return response()->json($bookings, 200);
+        return response()->json( BookingResource::Collection($bookings), 200);
     }
     public function store(Request $request){
         try{
@@ -50,7 +51,7 @@ class BookingController extends Controller
 
             $booking = Booking::create($booking_validation);
 
-            return response()->json($booking, 201);
+            return response()->json(new BookingResource($booking), 201);
 
 
 
@@ -68,8 +69,7 @@ class BookingController extends Controller
                 return response()->json(['message' => 'Unauthorized. Not your booking.'], 403);
             }
 
-        $booking = Booking::with('user','room')->findOrFail($id);
-        return response()->json($booking, 200);
+        return response()->json(new BookingResource($booking), 200);
 
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
         return response()->json(['message' => 'Booking not found'], 404);
