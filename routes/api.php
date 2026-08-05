@@ -7,7 +7,8 @@ use App\Http\Controllers\BookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
+Route::post('/register-customer', [AuthController::class, 'registerCustomer']);
+Route::post('/register-business', [AuthController::class, 'registerBusiness']);
 Route::post('/login', [AuthController::class, 'login']);
 
 

@@ -8,8 +8,9 @@ use App\Models\Room;
 class RoomController extends Controller
 {
     public function index(){
-        $rooms = Room::all();
-        return $rooms;
+        $user = auth()->user();
+
+        $rooms = Room::where('business_id', $user->business_id)->get();
     }
 
     public function store(Request $request){
